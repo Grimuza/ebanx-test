@@ -1,0 +1,6 @@
+@EbanxAPI_HostAddress = http://localhost:5110
+
+GET {{EbanxAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
