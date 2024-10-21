@@ -19,8 +19,13 @@ namespace EbanxApi.Controllers
         public async Task<IActionResult> Reset()
         {
             await _accountService.ResetAsync();
-            // Return 200 OK with empty body.
-            return Ok();
+            //return Ok("OK");
+            return new ContentResult
+            {
+                Content = "OK",
+                ContentType = "text/plain",
+                StatusCode = 200
+            };
         }
     }
 }

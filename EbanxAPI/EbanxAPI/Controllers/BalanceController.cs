@@ -23,10 +23,10 @@ namespace EbanxApi.Controllers
                 var balance = await _accountService.GetBalanceAsync(account_id);
                 return Ok(balance);
             }
-            catch (KeyNotFoundException ex)
+            catch (KeyNotFoundException)
             {
-                // Return 404 Not Found with "0" in the body when account doesn't exist.
-                return NotFound(ex.Message);
+                // Return 404 Not Found with 0 in the body when account doesn't exist.
+                return NotFound(0);
             }
         }
     }

@@ -77,10 +77,10 @@ namespace EbanxApi.Controllers
                         return BadRequest("Invalid event type.");
                 }
             }
-            catch (KeyNotFoundException ex)
+            catch (KeyNotFoundException)
             {
-                // Return 404 Not Found with "0" in the body when account doesn't exist.
-                return NotFound(ex.Message);
+                // Return 404 Not Found with 0 in the body when account doesn't exist.
+                return NotFound(0);
             }
             catch (InvalidOperationException ex)
             {
