@@ -1,13 +1,14 @@
+using System.Threading.Tasks;
 using EbanxApi.Models;
 
 namespace EbanxApi.Services
 {
     public interface IAccountService
     {
-        decimal GetBalance(int accountId);
-        void Reset();
-        Account Deposit(int accountId, decimal amount);
-        Account Withdraw(int accountId, decimal amount);
-        (Account Origin, Account Destination) Transfer(int fromAccountId, int toAccountId, decimal amount);
+        Task<decimal> GetBalanceAsync(int accountId);
+        Task ResetAsync();
+        Task<Account> DepositAsync(int accountId, decimal amount);
+        Task<Account> WithdrawAsync(int accountId, decimal amount);
+        Task<(Account Origin, Account Destination)> TransferAsync(int fromAccountId, int toAccountId, decimal amount);
     }
 }

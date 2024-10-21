@@ -1,65 +1,103 @@
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using EbanxApi.Models;
 
 namespace EbanxApi.Services
 {
     public class AccountService : IAccountService
     {
+        // Thread-safe dictionary to store accounts in memory.
         private readonly ConcurrentDictionary<int, Account> _accounts = new();
 
-        public decimal GetBalance(int accountId)
+        public Task<decimal> GetBalanceAsync(int accountId)
         {
             if (_accounts.TryGetValue(accountId, out var account))
             {
-                return account.Balance;
+                return Task.FromResult(account.Balance);
             }
             else
             {
-                // Throw exception to indicate account not found.
-                throw new KeyNotFoundException("0");
+                return Task.FromException<decimal>(new KeyNotFoundException("0"));
             }
         }
 
-        public void Reset()
+        public Task ResetAsync()
         {
             _accounts.Clear();
+            return Task.CompletedTask;
         }
 
-        public Account Deposit(int accountId, decimal amount)
+        public Task<Account> DepositAsync(int accountId, decimal amount)
         {
-            var account = _accounts.GetOrAdd(accountId, new Account { Id = accountId, Balance = 0 });
-            account.Balance += amount;
-            return account;
+            var account = _accounts.GetOrAdd(accountId, id => new Account { Id = id, Balance = 0 });
+            lock (account.Lock)
+            {
+                DepositInternal(account, amount);
+            }
+            return Task.FromResult(account);
         }
 
-        public Account Withdraw(int accountId, decimal amount)
+        public Task<Account> WithdrawAsync(int accountId, decimal amount)
         {
             if (_accounts.TryGetValue(accountId, out var account))
             {
-                if (account.Balance >= amount)
+                lock (account.Lock)
                 {
-                    account.Balance -= amount;
-                    return account;
-                }
-                else
-                {
-                    throw new InvalidOperationException("Insufficient funds");
+                    return WithdrawInternal(account, amount);
                 }
             }
             else
             {
-                // Throw exception to indicate account not found.
-                throw new KeyNotFoundException("0");
+                return Task.FromException<Account>(new KeyNotFoundException("0"));
             }
         }
 
-        public (Account Origin, Account Destination) Transfer(int fromAccountId, int toAccountId, decimal amount)
+        public Task<(Account Origin, Account Destination)> TransferAsync(int fromAccountId, int toAccountId, decimal amount)
         {
-            lock (_accounts)
+            if (!_accounts.TryGetValue(fromAccountId, out var originAccount))
             {
-                var originAccount = Withdraw(fromAccountId, amount);
-                var destinationAccount = Deposit(toAccountId, amount);
-                return (originAccount, destinationAccount);
+                return Task.FromException<(Account, Account)>(new KeyNotFoundException("0"));
+            }
+
+            var destinationAccount = _accounts.GetOrAdd(toAccountId, id => new Account { Id = id, Balance = 0 });
+
+            // ORder by ID to avoid deadlocks
+            var firstLock = fromAccountId < toAccountId ? originAccount : destinationAccount;
+            var secondLock = fromAccountId < toAccountId ? destinationAccount : originAccount;
+
+            lock (firstLock.Lock)
+            {
+                lock (secondLock.Lock)
+                {
+                    var withdrawalResult = WithdrawInternal(originAccount, amount);
+                    if (withdrawalResult.IsFaulted)
+                    {
+                        return Task.FromException<(Account, Account)>(new InvalidOperationException("Insufficient funds"));
+                    }
+
+                    DepositInternal(destinationAccount, amount);
+
+                    return Task.FromResult((originAccount, destinationAccount));
+                }
+            }
+        }
+
+
+        private void DepositInternal(Account account, decimal amount)
+        {
+            account.Balance += amount;
+        }
+
+        private Task<Account> WithdrawInternal(Account account, decimal amount)
+        {
+            if (account.Balance >= amount)
+            {
+                account.Balance -= amount;
+                return Task.FromResult(account);
+            }
+            else
+            {
+                return Task.FromException<Account>(new InvalidOperationException("Insufficient funds"));
             }
         }
     }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using EbanxApi.Models;
 using EbanxApi.Services;
+using System.Threading.Tasks;
 
 namespace EbanxApi.Controllers
 {
@@ -16,7 +17,7 @@ namespace EbanxApi.Controllers
         }
 
         [HttpPost("event")]
-        public IActionResult CreateEvent([FromBody] Event evt)
+        public async Task<IActionResult> CreateEvent([FromBody] Event evt)
         {
             try
             {
@@ -25,7 +26,7 @@ namespace EbanxApi.Controllers
                     case EventType.Deposit:
                         if (evt.Destination.HasValue)
                         {
-                            var account = _accountService.Deposit(evt.Destination.Value, evt.Amount);
+                            var account = await _accountService.DepositAsync(evt.Destination.Value, evt.Amount);
                             return Created(string.Empty, new
                             {
                                 destination = new
@@ -40,7 +41,7 @@ namespace EbanxApi.Controllers
                     case EventType.Withdraw:
                         if (evt.Origin.HasValue)
                         {
-                            var account = _accountService.Withdraw(evt.Origin.Value, evt.Amount);
+                            var account = await _accountService.WithdrawAsync(evt.Origin.Value, evt.Amount);
                             return Created(string.Empty, new
                             {
                                 origin = new
@@ -55,7 +56,7 @@ namespace EbanxApi.Controllers
                     case EventType.Transfer:
                         if (evt.Origin.HasValue && evt.Destination.HasValue)
                         {
-                            var result = _accountService.Transfer(evt.Origin.Value, evt.Destination.Value, evt.Amount);
+                            var result = await _accountService.TransferAsync(evt.Origin.Value, evt.Destination.Value, evt.Amount);
                             return Created(string.Empty, new
                             {
                                 origin = new

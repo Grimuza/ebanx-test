@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using EbanxApi.Services;
+using System.Threading.Tasks;
 
 namespace EbanxApi.Controllers
 {
@@ -15,9 +16,9 @@ namespace EbanxApi.Controllers
         }
 
         [HttpPost("reset")]
-        public IActionResult Reset()
+        public async Task<IActionResult> Reset()
         {
-            _accountService.Reset();
+            await _accountService.ResetAsync();
             // Return 200 OK with empty body.
             return Ok();
         }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using EbanxApi.Services;
+using System.Threading.Tasks;
 
 namespace EbanxApi.Controllers
 {
@@ -15,11 +16,11 @@ namespace EbanxApi.Controllers
         }
 
         [HttpGet("balance")]
-        public IActionResult GetBalance([FromQuery] int account_id)
+        public async Task<IActionResult> GetBalance([FromQuery] int account_id)
         {
             try
             {
-                var balance = _accountService.GetBalance(account_id);
+                var balance = await _accountService.GetBalanceAsync(account_id);
                 return Ok(balance);
             }
             catch (KeyNotFoundException ex)
