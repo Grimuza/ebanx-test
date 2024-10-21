@@ -1,2 +1,44 @@
+# Ignore build outputs
+bin/
+obj/
+
+# Ignore Visual Studio temporary files, build results, and
+# user-specific files
 .vs/
-EbanxAPI/EbanxAPI/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore IIS logs
+logs/
+
+# Ignore NuGet packages
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# Ignore .NET Core build results
+project.nuget.cache
+project.assets.json
+project.packages.cache
+
+# Ignore .NET Core debug & release folders
+**/Debug/
+**/Release/
+
+# Ignore auto-generated Assembly Info
+EbanxAPI/obj/**/*.AssemblyInfo.cs
+
+# Docker files
+.dockerignore
+
+# Ignore secrets for local development
+secrets.json
+
+# Ignore build artifacts
+*.log
+*.cache
+*.ide
